@@ -8,7 +8,7 @@ Module for working with the Zenoss API
 
 :configuration: This module requires a 'zenoss' entry in the master/minion config.
 
-    For example:
+    Example for authenticating with a user:
 
     .. code-block:: yaml
 
@@ -16,6 +16,15 @@ Module for working with the Zenoss API
           hostname: https://zenoss.example.com
           username: admin
           password: admin123
+
+    Example for Zenoss Cloud:
+
+    .. code-block:: yaml
+
+         zenoss:
+          hostname: https://company.zenoss.io/ab1
+          api_key: FFFFFFFFFFFFFFFFFFFFFFFFFF
+
 """
 
 
@@ -80,7 +89,12 @@ def _session():
 
     config = __salt__["config.option"]("zenoss")
     session = requests.session()
-    session.auth = (config.get("username"), config.get("password"))
+
+    if config.get('api_key'):
+        session.headers.update({'z-api-key': config.get('api_key')})
+    else:
+        session.auth = (config.get('username'), config.get('password'))
+
     session.verify = False
     session.headers.update({"Content-type": "application/json; charset=utf-8"})
     return session
